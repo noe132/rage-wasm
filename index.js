@@ -10,6 +10,10 @@ export async function encrypt_with_x25519(public_key, data, armor) {
 	return (await rage_wasm).encrypt_with_x25519(public_key, data, armor);
 }
 
+export async function encrypt_with_x25519_2(public_key, data, armor) {
+	return (await rage_wasm).encrypt_with_x25519_2(public_key, data, armor);
+}
+
 export async function decrypt_with_x25519(secret_key, data) {
 	return (await rage_wasm).decrypt_with_x25519(secret_key, data);
 }

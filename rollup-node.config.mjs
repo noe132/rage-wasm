@@ -4,7 +4,7 @@ import replace from 'rollup-plugin-re'
 export default {
 	input: 'index.js',
 	output: {
-		dir: 'dist/browser',
+		dir: 'dist/node',
 		format: 'cjs',
 	},
 	plugins: [
@@ -24,6 +24,10 @@ export default {
 				{
 					test: 'input = new URL(\'index_bg.wasm\', import.meta.url);',
 					replace: ''
+				},
+				{
+					test: 'require("fs").readFile(url',
+					replace: 'require("fs").readFile(require("path").join(__dirname, url)'
 				}
 			]
 		})

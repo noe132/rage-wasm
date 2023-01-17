@@ -28,6 +28,44 @@ pub fn keygen() -> Vec<JsValue> {
 }
 
 #[wasm_bindgen]
+pub fn encrypt_with_x25519_2(
+    public_key: js_sys::Array,
+    data: &[u8],
+    armor: bool,
+) -> Result<Box<[u8]>, JsValue> {
+    // let recipients: Vec<Result<Box<dyn age::Recipient>, JsValue>> = public_key.iter().map(|v| {
+    let recipients: Result<Vec<Box<dyn age::Recipient>>, JsValue> = public_key.iter().map(|v| {
+        let key_str: Result<String, js_sys::Error> = v.as_string().ok_or(js_sys::Error::new("invalid key error").into());
+        let key_str = key_str?;
+        let key_str = key_str.as_str();
+        let key: x25519::Recipient = key_str.parse().map_err(encrypt_error)?;
+        let recipient = Box::new(key) as Box<dyn age::Recipient>;
+        Ok(recipient)
+    }).collect();
+    let recipients = recipients?;
+    // let keys: Vec<&str> = public_key.iter().map(|v| v.as_string().unwrap().as_str()).collect();
+    // let keys: Result<Vec<x25519::Recipient>, _> = keys.iter().map(|v| v.parse().map_err(encrypt_error)).collect();
+    // let keys = keys?;
+    // let keys: Vec<x25519::Recipient> = keys.iter().map(|v| v.parse().map_err(encrypt_error)?).collect();
+    // let recipients = keys.iter().map(|v| Box::new(v) as Box<dyn age::Recipient>).collect();
+    let encryptor = Encryptor::with_recipients(recipients);
+    let mut output = vec![];
+    let format = if armor {
+        Format::AsciiArmor
+    } else {
+        Format::Binary
+    };
+    let armor = ArmoredWriter::wrap_output(&mut output, format).map_err(encrypt_error)?;
+    let mut writer = encryptor.wrap_output(armor).map_err(encrypt_error)?;
+    writer.write_all(data).map_err(encrypt_error)?;
+    writer
+        .finish()
+        .and_then(|armor| armor.finish())
+        .map_err(encrypt_error)?;
+    Ok(output.into_boxed_slice())
+}
+
+#[wasm_bindgen]
 pub fn encrypt_with_x25519(
     public_key: &str,
     data: &[u8],
