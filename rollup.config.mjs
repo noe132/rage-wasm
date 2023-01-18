@@ -5,14 +5,12 @@ export default {
 	input: 'index.js',
 	output: {
 		dir: 'dist/browser',
-		format: 'cjs',
 	},
 	plugins: [
 		rust({
 			cargoArgs: ["-Zbuild-std=std,panic_abort", "-Zbuild-std-features=panic_immediate_abort"],
 			wasmOptArgs: ["-Oz"],
 			verbose: true,
-			nodejs: true,
 			// inlineWasm: true
 		}),
 		replace({
