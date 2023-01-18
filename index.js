@@ -6,6 +6,10 @@ export async function keygen() {
 	return (await rage_wasm).keygen();
 }
 
+export async function get_public_key(public_key, data, armor) {
+	return (await rage_wasm).get_public_key(public_key, data, armor);
+}
+
 export async function encrypt_with_x25519(public_key, data, armor) {
 	return (await rage_wasm).encrypt_with_x25519(public_key, data, armor);
 }

@@ -5,7 +5,9 @@ use age::{
 use secrecy::{ExposeSecret, Secret};
 use std::{
     io::{Read, Write},
-    iter, vec,
+    iter,
+    str::FromStr,
+    vec,
 };
 use wasm_bindgen::prelude::*;
 
@@ -28,20 +30,33 @@ pub fn keygen() -> Vec<JsValue> {
 }
 
 #[wasm_bindgen]
+pub fn get_public_key(secret_key: &str) -> Result<JsValue, JsValue> {
+    let secret = x25519::Identity::from_str(secret_key)
+        .map_err(|_| js_sys::Error::new("invalid secrect key"))?;
+    let public = secret.to_public();
+    Ok(JsValue::from(public.to_string()))
+}
+
+#[wasm_bindgen]
 pub fn encrypt_with_x25519_2(
     public_key: js_sys::Array,
     data: &[u8],
     armor: bool,
 ) -> Result<Box<[u8]>, JsValue> {
     // let recipients: Vec<Result<Box<dyn age::Recipient>, JsValue>> = public_key.iter().map(|v| {
-    let recipients: Result<Vec<Box<dyn age::Recipient>>, JsValue> = public_key.iter().map(|v| {
-        let key_str: Result<String, js_sys::Error> = v.as_string().ok_or(js_sys::Error::new("invalid key error").into());
-        let key_str = key_str?;
-        let key_str = key_str.as_str();
-        let key: x25519::Recipient = key_str.parse().map_err(encrypt_error)?;
-        let recipient = Box::new(key) as Box<dyn age::Recipient>;
-        Ok(recipient)
-    }).collect();
+    let recipients: Result<Vec<Box<dyn age::Recipient>>, JsValue> = public_key
+        .iter()
+        .map(|v| {
+            let key_str: Result<String, js_sys::Error> = v
+                .as_string()
+                .ok_or(js_sys::Error::new("invalid key error").into());
+            let key_str = key_str?;
+            let key_str = key_str.as_str();
+            let key: x25519::Recipient = key_str.parse().map_err(encrypt_error)?;
+            let recipient = Box::new(key) as Box<dyn age::Recipient>;
+            Ok(recipient)
+        })
+        .collect();
     let recipients = recipients?;
     // let keys: Vec<&str> = public_key.iter().map(|v| v.as_string().unwrap().as_str()).collect();
     // let keys: Result<Vec<x25519::Recipient>, _> = keys.iter().map(|v| v.parse().map_err(encrypt_error)).collect();

@@ -145,6 +145,28 @@ function keygen$1() {
     }
 }
 
+/**
+* @param {string} secret_key
+* @returns {any}
+*/
+function get_public_key$1(secret_key) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(secret_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.get_public_key(retptr, ptr0, len0);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
 function passArray8ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 1);
     getUint8Memory0().set(arg, ptr / 1);
@@ -586,6 +608,7 @@ async function init(input, maybe_memory) {
 var exports = /*#__PURE__*/Object.freeze({
     __proto__: null,
     keygen: keygen$1,
+    get_public_key: get_public_key$1,
     encrypt_with_x25519_2: encrypt_with_x25519_2$1,
     encrypt_with_x25519: encrypt_with_x25519$1,
     decrypt_with_x25519: decrypt_with_x25519$1,
@@ -598,7 +621,7 @@ var exports = /*#__PURE__*/Object.freeze({
 var Cargo = async (opt = {}) => {
     let { importHook, serverPath } = opt;
 
-    let path = "assets/rage_wasm-de66bebf.wasm";
+    let path = "assets/rage_wasm-85bd9fed.wasm";
 
     if (serverPath != null) {
         path = serverPath + /[^\/\\]*$/.exec(path)[0];
@@ -616,6 +639,10 @@ const rage_wasm = Cargo();
 
 async function keygen() {
     return (await rage_wasm).keygen();
+}
+
+async function get_public_key(public_key, data, armor) {
+    return (await rage_wasm).get_public_key(public_key, data, armor);
 }
 
 async function encrypt_with_x25519(public_key, data, armor) {
@@ -638,4 +665,4 @@ async function decrypt_with_user_passphrase(passphrase, data) {
     return (await rage_wasm).decrypt_with_user_passphrase(passphrase, data);
 }
 
-export { decrypt_with_user_passphrase, decrypt_with_x25519, encrypt_with_user_passphrase, encrypt_with_x25519, encrypt_with_x25519_2, keygen };
+export { decrypt_with_user_passphrase, decrypt_with_x25519, encrypt_with_user_passphrase, encrypt_with_x25519, encrypt_with_x25519_2, get_public_key, keygen };
